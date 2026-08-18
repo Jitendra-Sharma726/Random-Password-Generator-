@@ -97,7 +97,114 @@ func generatePaasword(length int, upper, digits, symbols bool) string {
       }
 
     passwordBytes = append(passwordBytes,guaranteed...)
-    shuffle
+    shuffle(passwordBytes)
+
+    return string(passwordBytes)
+  }
+
+  func evaluateStrength(pwd string) int {
+    score := 1
+    if len(pwd) >= 12 {
+        score++
+    }
+    if len(pwd) >= 16 {
+      score++
+    }
+
+    var flagsMet int 
+    if strings.ContainsAny(pwd, upperChars) {
+      flagsMet++
+    }
+    if strings.ContainsAny(pwd, digitChars) {
+      flagsMet++
+    }
+    if strings.ContainsAny(pwd, specialChars) {
+      flagsMet++
+    }
+
+    if flagsMet >=2 {
+      score++
+    }
+    if flagsMet == 3 {
+      score++
+    }
+
+    if score > 5 {
+      return 5
+    }
+    return score
+  }
+
+ //---  High-Level Logic ---
+ //This function handles the looping, strength evaluation, and file writing.
+ func generateAndSavePasswords(count, length int, upper, digits, symbols bool, outPath string) error {
+   var outputData string
+
+   for i := 0; i < count; i++ {
+     password := generatePassword(length, upper, digits, symbols)
+     score := evaluateStrength(password)
+
+     outputData += fmt.Sprintf("Password:  %-25s | Strength: %d/5\n", password, score)
+    }
+
+   err := os.WriteFile(outPath, []byte(outputData), 0644)
+   if err != nil {
+     // Return the error to the caller rather than killing the program here 
+     return fmt.Errorf("failed to write to file %s: %w", outPath, err)
+    }
+
+   fmt.Printf("Sucessfully saved %d password(s) to '%s'\n", count,outPath)
+   return nil
+  }
+
+  // --- Prompt Helpers (DO NOT MODIFY THESE FUNCTIONS)  ---
+
+  func readString(reader *bufio.Reader, prompt string, defaultVal string) string {
+    fmt.Print(prompt)
+    input, _ := reader.ReadString('\n')
+    input = strings.TrimSpace(input)
+    if input == "" {
+            return defaultVal
+    }
+    return input
+  }
+
+
+ func readInt(reader *bufio.Reader, prompt string, defaultVal int) int {
+   input := readString(reader, prompt, "")
+   if input == "" {
+     return defaultVal
+  }
+
+ Val, err := strconv.Atoi(input)
+ if err != nil {
+    fmt.Printf("Invalid number, using default (%d).\n", defaultVal)
+    return defaultVal
+  }
+  return val
+  }
+
+func readBool(reader *bufio.Reader, prompt string, defaultVal bool) bool {
+  input := strings.ToLower(readString(reader, prompt, ""))
+  if input == "" {
+       return defaultVal
+  }
+  return input == "y" || input == "yes"
+}
+                   
+
+
+
+
+
+
+
+
+
+
+
+
+    
   
 
 
